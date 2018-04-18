@@ -39,13 +39,15 @@ export class PaylineCore {
      */
     public async runAction(action: string, args: any): Promise<any> {
         await this.initializeAll();
-        const client = Object.values(this._soapClient)
+        const client = Object.keys(this._soapClient)
+            .map(clientName => this._soapClient[clientName])
             .find(client => !!client && !!client[this.actionMethodName(action)]);
         if (!client) {
             throw new Error("Wrong action for the API");
         } else {
             debug(`Using client with services ` +
-                `${JSON.stringify(Object.keys(client && client.wsdl && client.wsdl.services))} for action ${action}`);
+                `${JSON.stringify(Object.keys(client && client.wsdl && client.wsdl.services))} ` +
+                `for action ${action}}`);
         }
 
         try {
@@ -88,16 +90,16 @@ export class PaylineCore {
      * @return {Promise<any>} promise to the soap client
      */
     private async initialize(operation: Operation): Promise<void> {
-        debug("creating client for", operation, this.wsdl(operation));
+        debug("creating client for", operation, this.wsdl(operation), this.soapParams(operation));
         this._soapClient[operation] = await soap.createClientAsync(this.wsdl(operation), this.soapParams(operation));
         const basicAuthSecurity = new soap.BasicAuthSecurity(this.merchantId, this.accessKey);
 
         this._soapClient[operation].setSecurity(basicAuthSecurity);
         this._soapClient[operation].on("request", (xml: string): void => {
-            debug("REQUEST", xml);
+            debug(`REQUEST: ${xml}`);
         });
         this._soapClient[operation].on("response", (xml: string): void => {
-            debug("RESPONSE", xml);
+            debug(`RESPONSE: ${xml}`);
         });
     }
 
