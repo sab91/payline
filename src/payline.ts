@@ -123,6 +123,7 @@ export default class Payline extends PaylineCore {
 
     public async doAuthorization(payment: Payment, card: Card, referencePrefix?: string,
                                  currency?: CURRENCIES, order: Order = {}): Promise<TransactionResult> {
+        console.log(`doAuthorization on amount ${payment && payment.amount} comment: '${payment && payment.softDescriptor}'.`);
         this.setPaymentDefaults(payment, ACTIONS.AUTHORIZATION, currency);
         this.setOrderDefaults(order, referencePrefix, currency, payment.amount);
         return this.extractTransactionalResult(await this.runAction("doAuthorization", {
@@ -134,6 +135,7 @@ export default class Payline extends PaylineCore {
 
     public async doReAuthorization(transactionID: string, payment: Payment, referencePrefix?: string,
                                    currency?: CURRENCIES, order: Order = {}): Promise<TransactionResult> {
+        console.log(`doReAuthorization for transaction ${transactionID} on amount ${payment && payment.amount} comment: '${payment && payment.softDescriptor}'.`);
         this.setPaymentDefaults(payment, ACTIONS.AUTHORIZATION, currency);
         this.setOrderDefaults(order, referencePrefix, currency, payment.amount);
         return this.extractTransactionalResult(await this.runAction("doReAuthorization", {
@@ -144,6 +146,7 @@ export default class Payline extends PaylineCore {
     }
 
     public async doCapture(transactionID, payment: Payment, currency?: CURRENCIES): Promise<TransactionResult> {
+        console.log(`doCapture for transaction ${transactionID} on amount ${payment && payment.amount} comment: '${payment && payment.softDescriptor}'.`);
         this.setPaymentDefaults(payment, ACTIONS.VALIDATION, currency);
         return this.extractTransactionalResult(await this.runAction("doCapture", {
             payment,
