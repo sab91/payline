@@ -44,16 +44,16 @@ export const disableWallet = async (event, context, callback) => {
 };
 
 export const doWebPayment = async (event, context, callback) => {
-    result(callback, await payline(event).doWebPayment(event.payment, event.returnURL, event.cancelURL, event.buyer,
+    result(callback, await payline(event).doWebPayment(event.payment, event.returnUrl, event.cancelUrl, event.buyer,
         event.selectedContractList, event.referencePrefix, event.currency, event.order));
 };
 
 export const doCapture = async (event, context, callback) => {
-    result(callback, await payline(event).doCapture(event.transactionID, event.payment, event.currency));
+    result(callback, await payline(event).doCapture(event.transactionId, event.payment, event.currency));
 };
 
 export const doRefund = async (event, context, callback) => {
-    result(callback, await payline(event).doRefund(event.transactionID, event.payment, event.comment));
+    result(callback, await payline(event).doRefund(event.transactionId, event.payment, event.comment));
 };
 
 export const scheduleWalletPayment = async (event, context, callback) => {
@@ -67,7 +67,7 @@ export const validateCard = async (event, context, callback) => {
 };
 
 export const doReset = async (event, context, callback) => {
-    result(callback, await payline(event).doReset(event.transactionID, event.comment));
+    result(callback, await payline(event).doReset(event.transactionId, event.comment));
 };
 
 export const doAuthorization = async (event, context, callback) => {
@@ -76,7 +76,7 @@ export const doAuthorization = async (event, context, callback) => {
 };
 
 export const doReAuthorization = async (event, context, callback) => {
-    result(callback, await payline(event).doReAuthorization(event.transactionID, event.payment,
+    result(callback, await payline(event).doReAuthorization(event.transactionId, event.payment,
         event.referencePrefix, event.currency, event.order));
 };
 
@@ -91,7 +91,7 @@ export const doPayment = async (event, context, callback) => {
 };
 
 export const transactionDetail = async (event, context, callback) => {
-    result(callback, await payline(event).transactionDetail(event.transactionID));
+    result(callback, await payline(event).transactionDetail(event.transactionId));
 };
 
 export const runAction = async (event, context, callback) => {
