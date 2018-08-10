@@ -22,78 +22,103 @@ const payline = (event): Payline => {
 };
 
 // can encode data (ex. adding custom result code)
-const result = (callback, data): void => {
-    callback(null, data);
+const handler = async (event, callback, funName: string, args: any[] = []) => {
+    try {
+        const results = await payline(event)[funName](...args);
+        callback(null, results);
+        // force to exit the process so no waiting for timeout
+        //process.exit(0);
+    } catch (err) {
+        err.status = err.status || false;
+        err.errorType = err.errorType || "Error";
+        err.statusCode = err.statusCode || 500;
+        err.stackTrace = err.stackTrace || [];
+        err.body = err.body || err.message || err.msg || err.errorMessage;
+        err.message = err.message || err.msg || err.errorMessage;
+        if (err.message && typeof err.message !== "string") {
+            try {
+                err.message = JSON.stringify(err.message);
+            } catch (parseErr) {
+                console.log("err.message is not a string or JSON");
+                console.log(parseErr);
+            }
+        }
+        callback(err);
+        //throw err;
+        console.log(err);
+        // force to exit the process so no waiting for timeout
+        process.exit(-1);
+    }
 };
 
 // functions
 export const createWallet = async (event, context, callback) => {
-    result(callback, await payline(event).createWallet(event.walletId, event.card));
+    handler(event, callback, "createWallet", [event.walletId, event.card]);
 };
 
 export const getWallet = async (event, context, callback) => {
-    result(callback, await payline(event).getWallet(event.walletId));
+    handler(event, callback, "getWallet", [event.walletId]);
 };
 
 export const updateWallet = async (event, context, callback) => {
-    result(callback, await payline(event).updateWallet(event.walletId, event.card, event.owner));
+    handler(event, callback, "updateWallet", [event.walletId, event.card, event.owner]);
 };
 
 export const disableWallet = async (event, context, callback) => {
-    result(callback, await payline(event).disableWallet(event.walletId));
+    handler(event, callback, "disableWallet", [event.walletId]);
 };
 
 export const doWebPayment = async (event, context, callback) => {
-    result(callback, await payline(event).doWebPayment(event.payment, event.returnUrl, event.cancelUrl, event.buyer,
-        event.selectedContractList, event.referencePrefix, event.currency, event.order));
+    handler(event, callback, "doWebPayment", [event.payment, event.returnUrl, event.cancelUrl, event.buyer,
+        event.selectedContractList, event.referencePrefix, event.currency, event.order]);
 };
 
 export const doCapture = async (event, context, callback) => {
-    result(callback, await payline(event).doCapture(event.transactionId, event.payment, event.currency));
+    handler(event, callback, "doCapture", [event.transactionId, event.payment, event.currency]);
 };
 
 export const doRefund = async (event, context, callback) => {
-    result(callback, await payline(event).doRefund(event.transactionId, event.payment, event.comment));
+    handler(event, callback, "doRefund", [event.transactionId, event.payment, event.comment]);
 };
 
 export const scheduleWalletPayment = async (event, context, callback) => {
-    result(callback, await payline(event).scheduleWalletPayment(event.walletId, event.payment, event.scheduledDate,
-        event.referencePrefix, event.currency, event.order));
+    handler(event, callback, "scheduleWalletPayment", [event.walletId, event.payment, event.scheduledDate,
+        event.referencePrefix, event.currency, event.order]);
 };
 
 export const validateCard = async (event, context, callback) => {
-    result(callback, await payline(event).validateCard(event.payment, event.card,
-        event.referencePrefix, event.currency, event.order));
+    handler(event, callback, "validateCard", [event.payment, event.card,
+        event.referencePrefix, event.currency, event.order]);
 };
 
 export const doReset = async (event, context, callback) => {
-    result(callback, await payline(event).doReset(event.transactionId, event.comment));
+    handler(event, callback, "doReset", [event.transactionId, event.comment]);
 };
 
 export const doAuthorization = async (event, context, callback) => {
-    result(callback, await payline(event).doAuthorization(event.payment, event.card,
-        event.referencePrefix, event.currency, event.order));
+    handler(event, callback, "doAuthorization", [event.payment, event.card,
+        event.referencePrefix, event.currency, event.order]);
 };
 
 export const doReAuthorization = async (event, context, callback) => {
-    result(callback, await payline(event).doReAuthorization(event.transactionId, event.payment,
-        event.referencePrefix, event.currency, event.order));
+    handler(event, callback, "doReAuthorization", [event.transactionId, event.payment,
+        event.referencePrefix, event.currency, event.order]);
 };
 
 export const doWalletPayment = async (event, context, callback) => {
-    result(callback, await payline(event).doWalletPayment(event.walletId, event.payment,
-        event.referencePrefix, event.currency, event.order));
+    handler(event, callback, "doWalletPayment", [event.walletId, event.payment,
+        event.referencePrefix, event.currency, event.order]);
 };
 
 export const doPayment = async (event, context, callback) => {
-    result(callback, await payline(event).doPayment(event.payment, event.card,
-        event.referencePrefix, event.currency, event.order));
+    handler(event, callback, "doPayment", [event.payment, event.card,
+        event.referencePrefix, event.currency, event.order]);
 };
 
 export const transactionDetail = async (event, context, callback) => {
-    result(callback, await payline(event).transactionDetail(event.transactionId));
+    handler(event, callback, "transactionDetail", [event.transactionId]);
 };
 
 export const runAction = async (event, context, callback) => {
-    result(callback, await payline(event).runAction(event.action, event.args));
+    handler(event, callback, "runAction", [event.action, event.args]);
 };
