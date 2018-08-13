@@ -25,11 +25,12 @@ const payline = (event): Payline => {
 const handler = async (event, callback, funName: string, args: any[] = []) => {
     try {
         const results = await payline(event)[funName](...args);
-        console.log(`Transaction went to payline with output ${JSON.stringify(results)}`);
+        console.log(`Transaction went to payline with output ${results && JSON.stringify(results) || ""}`);
         callback(null, results);
         // force to exit the process so no waiting for timeout
         //process.exit(0);
     } catch (err) {
+        console.log(`Transaction produced error ${err && JSON.stringify(err) || ""}`);
         err.status = err.status || false;
         err.errorType = err.errorType || "Error";
         err.statusCode = err.statusCode || 500;
