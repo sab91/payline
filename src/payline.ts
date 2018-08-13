@@ -40,6 +40,7 @@ export default class Payline extends PaylineCore {
     }
 
     private extractTransactionalResult(raw: any): TransactionResult {
+        console.log(`extracting result data from ${raw && JSON.stringify(raw) || ""}`);
         return {id: raw.transaction && raw.transaction.id, raw,}
     }
 
