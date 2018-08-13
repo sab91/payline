@@ -24,7 +24,7 @@ const payline = (event): Payline => {
 // can encode data (ex. adding custom result code)
 const handler = async (event, callback, funName: string, args: any[] = []) => {
     try {
-        console.log(`Preparing for calling ${funName}`);
+        console.log(`Preparing for calling ${funName} with params ${event && JSON.stringify(event) || ""}`);
         const results = await payline(event)[funName](...args);
         console.log(`Transaction went to payline with output ${results && JSON.stringify(results) || ""}`);
         callback(null, results);
