@@ -11,7 +11,7 @@ import {
 } from "./model";
 
 
-const debug = _debug("payline");
+const debug = _debug("payline-debug-core");
 
 export class PaylineCore {
 

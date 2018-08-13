@@ -1,5 +1,10 @@
+import * as _debug from "debug";
 import {default as Payline} from "./src/payline";
 import {CURRENCIES, Environment} from "./src/model";
+
+const info = _debug("payline-info-handler");
+const error = _debug("payline-error-handler");
+const debug = _debug("payline-debug-handler");
 
 // Handler for serverless framework exposing all the functions with the serverless provider
 
@@ -24,14 +29,14 @@ const payline = (event): Payline => {
 // can encode data (ex. adding custom result code)
 const handler = async (event, callback, funName: string, args: any[] = []) => {
     try {
-        console.log(`Preparing for calling ${funName} with params ${event && JSON.stringify(event) || ""}`);
+        debug(`Preparing for calling ${funName} with params ${event && JSON.stringify(event) || ""}`);
         const results = await payline(event)[funName](...args);
-        console.log(`Transaction went to payline with output ${results && JSON.stringify(results) || ""}`);
+        info(`Transaction went to payline with output ${results && JSON.stringify(results) || ""}`);
         callback(null, results);
         // force to exit the process so no waiting for timeout
         //process.exit(0);
     } catch (err) {
-        console.log(`Transaction produced error ${err && JSON.stringify(err) || ""}`);
+        debug(`Transaction produced error ${err && JSON.stringify(err) || ""}`);
         err.status = err.status || false;
         err.errorType = err.errorType || "Error";
         err.statusCode = err.statusCode || 500;
@@ -42,13 +47,13 @@ const handler = async (event, callback, funName: string, args: any[] = []) => {
             try {
                 err.message = JSON.stringify(err.message);
             } catch (parseErr) {
-                console.log("err.message is not a string or JSON");
-                console.log(parseErr);
+                error("err.message is not a string or JSON");
+                error(parseErr);
             }
         }
         callback(err);
         //throw err;
-        console.log(err);
+        info(err);
         // force to exit the process so no waiting for timeout
         process.exit(-1);
     }
