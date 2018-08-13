@@ -56,72 +56,72 @@ const handler = async (event, callback, funName: string, args: any[] = []) => {
 
 // functions
 export const createWallet = async (event, context, callback) => {
-    handler(event, callback, "createWallet", [event.walletId, event.card]);
+    await handler(event, callback, "createWallet", [event.walletId, event.card]);
 };
 
 export const getWallet = async (event, context, callback) => {
-    handler(event, callback, "getWallet", [event.walletId]);
+    await handler(event, callback, "getWallet", [event.walletId]);
 };
 
 export const updateWallet = async (event, context, callback) => {
-    handler(event, callback, "updateWallet", [event.walletId, event.card, event.owner]);
+    await handler(event, callback, "updateWallet", [event.walletId, event.card, event.owner]);
 };
 
 export const disableWallet = async (event, context, callback) => {
-    handler(event, callback, "disableWallet", [event.walletId]);
+    await handler(event, callback, "disableWallet", [event.walletId]);
 };
 
 export const doWebPayment = async (event, context, callback) => {
-    handler(event, callback, "doWebPayment", [event.payment, event.returnUrl, event.cancelUrl, event.buyer,
+    await handler(event, callback, "doWebPayment", [event.payment, event.returnUrl, event.cancelUrl, event.buyer,
         event.selectedContractList, event.referencePrefix, event.currency, event.order]);
 };
 
 export const doCapture = async (event, context, callback) => {
-    handler(event, callback, "doCapture", [event.transactionId, event.payment, event.currency]);
+    await handler(event, callback, "doCapture", [event.transactionId, event.payment, event.currency]);
 };
 
 export const doRefund = async (event, context, callback) => {
-    handler(event, callback, "doRefund", [event.transactionId, event.payment, event.comment]);
+    await handler(event, callback, "doRefund", [event.transactionId, event.payment, event.comment]);
 };
 
 export const scheduleWalletPayment = async (event, context, callback) => {
-    handler(event, callback, "scheduleWalletPayment", [event.walletId, event.payment, event.scheduledDate,
+    await handler(event, callback, "scheduleWalletPayment", [event.walletId, event.payment, event.scheduledDate,
         event.referencePrefix, event.currency, event.order]);
 };
 
 export const validateCard = async (event, context, callback) => {
-    handler(event, callback, "validateCard", [event.payment, event.card,
+    await handler(event, callback, "validateCard", [event.payment, event.card,
         event.referencePrefix, event.currency, event.order]);
 };
 
 export const doReset = async (event, context, callback) => {
-    handler(event, callback, "doReset", [event.transactionId, event.comment]);
+    await handler(event, callback, "doReset", [event.transactionId, event.comment]);
 };
 
 export const doAuthorization = async (event, context, callback) => {
-    handler(event, callback, "doAuthorization", [event.payment, event.card,
+    await handler(event, callback, "doAuthorization", [event.payment, event.card,
         event.referencePrefix, event.currency, event.order]);
 };
 
 export const doReAuthorization = async (event, context, callback) => {
-    handler(event, callback, "doReAuthorization", [event.transactionId, event.payment,
+    await handler(event, callback, "doReAuthorization", [event.transactionId, event.payment,
         event.referencePrefix, event.currency, event.order]);
 };
 
 export const doWalletPayment = async (event, context, callback) => {
-    handler(event, callback, "doWalletPayment", [event.walletId, event.payment,
+    await handler(event, callback, "doWalletPayment", [event.walletId, event.payment,
         event.referencePrefix, event.currency, event.order]);
 };
 
 export const doPayment = async (event, context, callback) => {
-    handler(event, callback, "doPayment", [event.payment, event.card,
+    await handler(event, callback, "doPayment", [event.payment, event.card,
         event.referencePrefix, event.currency, event.order]);
 };
 
 export const transactionDetail = async (event, context, callback) => {
-    handler(event, callback, "transactionDetail", [event.transactionId]);
+    await handler(event, callback, "transactionDetail", [event.transactionId]);
 };
 
 export const runAction = async (event, context, callback) => {
-    handler(event, callback, "runAction", [event.action, event.args]);
+    await handler(event, callback, "runAction", [event.action, event.args]);
 };
