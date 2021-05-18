@@ -1,0 +1,25 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint", "prettier"],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:prettier/recommended"
+    ],
+    "parserOptions": { "ecmaVersion": 2018, "sourceType": "module" },
+    "rules": {
+        "no-console": "off",
+        "no-process-env": "off",
+        "prettier/prettier": ["error", {}, { "usePrettierrc": true }],
+        "@typescript-eslint/no-explicit-any": 0, // [true, "ignore-params", "ignore-properties"]
+        "@typescript-eslint/no-inferrable-types": [
+            2,
+            {
+                "ignoreParameters": true,
+                "ignoreProperties": true
+            }
+        ]
+    }
+}

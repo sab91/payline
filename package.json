@@ -10,7 +10,9 @@
         "deploy-appsync": "serverless deploy-appsync",
         "update-appsync": "serverless update-appsync",
         "delete-appsync": "serverless delete-appsync",
-        "deploy": "serverless deploy && npm run update-appsync"
+        "deploy": "serverless deploy && npm run update-appsync",
+        "lint": "eslint src/**/*.ts",
+        "format": "eslint src/**/*.ts --fix"
     },
     "jest": {
         "transform": {
@@ -46,7 +48,13 @@
         "@types/debug": "^4.1.5",
         "@types/jest": "^26.0.23",
         "@types/node": "^9.4.0",
+        "@typescript-eslint/eslint-plugin": "^4.23.0",
+        "@typescript-eslint/parser": "^4.23.0",
+        "eslint": "^7.26.0",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-plugin-prettier": "^3.4.0",
         "jest": "^26.6.3",
+        "prettier": "^2.3.0",
         "serverless": "^2.41.2",
         "serverless-appsync-plugin": "^1.11.3",
         "serverless-offline": "^7.0.0",
@@ -54,5 +62,10 @@
         "ts-jest": "^26.5.6",
         "typescript": "^4.2.4",
         "yarn": "^1.22.10"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "yarn lint"
+        }
     }
 }

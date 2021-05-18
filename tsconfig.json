@@ -7,16 +7,16 @@
     ],
     "compilerOptions": {
         "noImplicitAny": false,
-        "target": "es2017",
+        "target": "es2018",
         "types": [
             "node",
             "jest"
         ],
         "lib": [
-            "es2017"
+            "es2018"
         ],
         "strictNullChecks": true,
-        "module": "commonjs",
+        "module": "CommonJS",
         "sourceMap": true,
         "experimentalDecorators": true
     }
