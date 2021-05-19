@@ -1,5 +1,5 @@
 import * as _debug from "debug";
-import {PaylineCore} from "./core";
+import { PaylineCore } from "./core";
 import {
     ACTIONS,
     Card,
@@ -10,17 +10,17 @@ import {
     Owner,
     Payment,
     SuccessResult,
-    TransactionResult, UrlResult,
+    TransactionResult,
+    UrlResult,
     ValidationResult,
     Wallet,
-    WalletResult,
-} from "./model";
-
+    WalletResult
+} from "./model/model";
+import { DoWebPaymentRequest } from "./model/request";
 
 const info = _debug("payline-info-payline");
 
 export default class Payline extends PaylineCore {
-
     public defaultCurrency: CURRENCIES = CURRENCIES.USD;
     public defaultMode: MODE = MODE.CPT;
     public defaultReferencePrefix: string = "order_";
@@ -42,13 +42,13 @@ export default class Payline extends PaylineCore {
     }
 
     private extractTransactionalResult(raw: any): TransactionResult {
-        return {id: raw.transaction && raw.transaction.id, raw,}
+        return { id: raw.transaction && raw.transaction.id, raw };
     }
 
     protected generateWallet(walletId: string, card: Card): Wallet {
         return {
             walletId,
-            card,
+            card
         };
     }
 
@@ -60,18 +60,18 @@ export default class Payline extends PaylineCore {
         const raw = await this.runAction("createWallet", {
             contractNumber: this.contractNumber,
             wallet: this.generateWallet(walletId, card),
-            owner,
+            owner
         });
-        return { wallet: walletId, raw, };
+        return { wallet: walletId, raw };
     }
 
     public async updateWallet(walletId, card: Card, owner?: Owner): Promise<WalletResult> {
         const raw = await this.runAction("updateWallet", {
             contractNumber: this.contractNumber,
             wallet: this.generateWallet(walletId, card),
-            owner,
+            owner
         });
-        return {wallet: walletId, raw,};
+        return { wallet: walletId, raw };
     }
 
     public async getWallet(walletId): Promise<WalletResult> {
@@ -79,135 +79,184 @@ export default class Payline extends PaylineCore {
             contractNumber: this.contractNumber,
             walletId
         });
-        return {wallet: walletId, raw,};
+        return { wallet: walletId, raw };
     }
 
-    public async disableWallet(walletId): Promise<SuccessResult> {
+    public async disableWallet(walletId: string): Promise<SuccessResult> {
         const raw = await this.runAction("disableWallet", {
             contractNumber: this.contractNumber,
-            walletIdList: [walletId],
+            walletIdList: [walletId]
         });
-        return {success: true, raw};
+        return { success: true, raw };
     }
 
-    public async transactionDetail(transactionId): Promise<TransactionResult> {
-        const raw = await this.extractTransactionalResult(await this.runAction("getTransactionDetails", {
-            transactionId,
-        }));
-        return raw;
+    public async transactionDetail(transactionId: string): Promise<TransactionResult> {
+        return this.extractTransactionalResult(
+            await this.runAction("getTransactionDetails", {
+                transactionId
+            })
+        );
     }
 
-    public async doWalletPayment(walletId, payment: Payment, referencePrefix?: string,
-                                 currency?: CURRENCIES, order: Order = {}): Promise<any> {
+    public async doWalletPayment(
+        walletId: string,
+        payment: Payment,
+        referencePrefix?: string,
+        currency?: CURRENCIES,
+        order: Order = {}
+    ): Promise<any> {
         this.setPaymentDefaults(payment, ACTIONS.PAYMENT, currency);
         this.setOrderDefaults(order, referencePrefix, currency, payment.amount);
-        const raw: any = await this.extractTransactionalResult(await this.runAction("doImmediateWalletPayment", {
-            payment,
-            order,
-            walletId,
-        }));
-        return raw;
+        return this.extractTransactionalResult(
+            await this.runAction("doImmediateWalletPayment", {
+                payment,
+                order,
+                walletId
+            })
+        );
     }
 
-    public async scheduleWalletPayment(walletId, payment: Payment, scheduledDate: Date, referencePrefix?: string,
-                                       currency?: CURRENCIES, order: Order = {}): Promise<any> {
+    public async scheduleWalletPayment(
+        walletId: string,
+        payment: Payment,
+        scheduledDate: Date,
+        referencePrefix?: string,
+        currency?: CURRENCIES,
+        order: Order = {}
+    ): Promise<any> {
         this.setPaymentDefaults(payment, ACTIONS.PAYMENT, currency);
         this.setOrderDefaults(order, referencePrefix, currency, payment.amount);
-        const raw: any =  this.extractTransactionalResult(await this.runAction("doScheduledWalletPayment", {
-            payment,
-            order,
-            walletId,
-            scheduledDate,
-        }));
+        const raw: any = this.extractTransactionalResult(
+            await this.runAction("doScheduledWalletPayment", {
+                payment,
+                order,
+                walletId,
+                scheduledDate
+            })
+        );
         raw.id = raw.paymentRecordId || null;
         return raw;
     }
 
-    public async doAuthorization(payment: Payment, card: Card, referencePrefix?: string,
-                                 currency?: CURRENCIES, order: Order = {}): Promise<TransactionResult> {
+    public async doAuthorization(
+        payment: Payment,
+        card: Card,
+        referencePrefix?: string,
+        currency?: CURRENCIES,
+        order: Order = {}
+    ): Promise<TransactionResult> {
         info(`doAuthorization on amount ${payment && payment.amount} comment: '${payment && payment.softDescriptor}'.`);
         this.setPaymentDefaults(payment, ACTIONS.AUTHORIZATION, currency);
         this.setOrderDefaults(order, referencePrefix, currency, payment.amount);
-        return this.extractTransactionalResult(await this.runAction("doAuthorization", {
-            payment,
-            order,
-            card,
-        }));
+        return this.extractTransactionalResult(
+            await this.runAction("doAuthorization", {
+                payment,
+                order,
+                card
+            })
+        );
     }
 
-    public async doReAuthorization(transactionID: string, payment: Payment, referencePrefix?: string,
-                                   currency?: CURRENCIES, order: Order = {}): Promise<TransactionResult> {
-        info(`doReAuthorization for transaction ${transactionID} on amount ${payment && payment.amount} comment: '${payment && payment.softDescriptor}'.`);
+    public async doReAuthorization(
+        transactionID: string,
+        payment: Payment,
+        referencePrefix?: string,
+        currency?: CURRENCIES,
+        order: Order = {}
+    ): Promise<TransactionResult> {
+        info(
+            `doReAuthorization for transaction ${transactionID} on amount ${payment && payment.amount} comment: '${
+                payment && payment.softDescriptor
+            }'.`
+        );
         this.setPaymentDefaults(payment, ACTIONS.AUTHORIZATION, currency);
         this.setOrderDefaults(order, referencePrefix, currency, payment.amount);
-        return this.extractTransactionalResult(await this.runAction("doReAuthorization", {
-            transactionID,
-            payment,
-            order,
-        }));
+        return this.extractTransactionalResult(
+            await this.runAction("doReAuthorization", {
+                transactionID,
+                payment,
+                order
+            })
+        );
     }
 
     public async doCapture(transactionID, payment: Payment, currency?: CURRENCIES): Promise<TransactionResult> {
-        info(`doCapture for transaction ${transactionID} on amount ${payment && payment.amount} comment: '${payment && payment.softDescriptor}'.`);
+        info(
+            `doCapture for transaction ${transactionID} on amount ${payment && payment.amount} comment: '${
+                payment && payment.softDescriptor
+            }'.`
+        );
         this.setPaymentDefaults(payment, ACTIONS.VALIDATION, currency);
-        return this.extractTransactionalResult(await this.runAction("doCapture", {
-            payment,
-            transactionID,
-        }));
+        return this.extractTransactionalResult(
+            await this.runAction("doCapture", {
+                payment,
+                transactionID
+            })
+        );
     }
 
-    public async doReset(transactionID: string,
-                         comment: string = "Card validation cleanup"): Promise<TransactionResult> {
-        return this.extractTransactionalResult(await this.runAction("doReset", {
-            transactionID,
-            comment,
-        }));
+    public async doReset(
+        transactionID: string,
+        comment: string = "Card validation cleanup"
+    ): Promise<TransactionResult> {
+        return this.extractTransactionalResult(
+            await this.runAction("doReset", {
+                transactionID,
+                comment
+            })
+        );
     }
 
-    public async doRefund(transactionID: string, payment: Payment,
-                         comment: string = "Transaction refound"): Promise<TransactionResult> {
-        return this.extractTransactionalResult(await this.runAction("doRefund", {
-            transactionID,
-            payment,
-            comment,
-        }));
+    public async doRefund(
+        transactionID: string,
+        payment: Payment,
+        comment: string = "Transaction refound"
+    ): Promise<TransactionResult> {
+        return this.extractTransactionalResult(
+            await this.runAction("doRefund", {
+                transactionID,
+                payment,
+                comment
+            })
+        );
     }
 
-    public async validateCard(payment: Payment, card: Card, referencePrefix?: string,
-                              currency?: CURRENCIES, order: Order = {}): Promise<ValidationResult> {
+    public async validateCard(
+        payment: Payment,
+        card: Card,
+        referencePrefix?: string,
+        currency?: CURRENCIES,
+        order: Order = {}
+    ): Promise<ValidationResult> {
         // 1 is the minimum here
         order.amount = Math.max(payment.amount, MIN_AMOUNT);
         let authorization: any = null;
         try {
             authorization = await this.doAuthorization(payment, card, referencePrefix, currency, order);
         } catch {
-            return {success: false, raw: {authorization, reset: null}};
+            return { success: false, raw: { authorization, reset: null } };
         }
 
         const reset = await this.doReset(authorization && authorization.id);
-        return {success: true, raw: {authorization, reset}}
+        return { success: true, raw: { authorization, reset } };
     }
 
-    public async doPayment(payment: Payment, card: Card, referencePrefix?: string,
-                           currency?: CURRENCIES, order: Order = {}): Promise<TransactionResult> {
+    public async doPayment(
+        payment: Payment,
+        card: Card,
+        referencePrefix?: string,
+        currency?: CURRENCIES,
+        order: Order = {}
+    ): Promise<TransactionResult> {
         const authorization = await this.doAuthorization(payment, card, referencePrefix, currency, order);
         const capture = await this.doCapture(authorization.id, payment, currency);
-        return {id: capture.id, raw: {authorization, capture}}
+        return { id: capture.id, raw: { authorization, capture } };
     }
 
-    public async doWebPayment(payment: Payment, returnURL, cancelURL, buyer: any = {}, selectedContractList: any = null,
-                              referencePrefix?, currency?, order: Order = {}): Promise<UrlResult> {
-        this.setPaymentDefaults(payment, ACTIONS.PAYMENT, currency);
-        this.setOrderDefaults(order, referencePrefix, currency, payment.amount);
-        const raw = await this.runAction("doWebPayment", {
-            payment,
-            returnURL,
-            cancelURL,
-            order,
-            selectedContractList,
-            buyer,
-        });
-        return {url: raw.redirectURL, raw };
+    public async doWebPayment(req: DoWebPaymentRequest): Promise<UrlResult> {
+        req.payment = this.setPaymentDefaults(req.payment, ACTIONS.PAYMENT, req.order.currency);
+        req.order = this.setOrderDefaults(req.order, req.order.ref, req.order.currency, req.payment.amount);
+        const raw = await this.runAction("doWebPayment", req);
+        return { url: raw.redirectURL, raw };
     }
-
 }

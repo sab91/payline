@@ -1,8 +1,8 @@
 import * as _debug from "debug";
-import {sleep} from "30-seconds-of-code";
+import { sleep } from "30-seconds-of-code";
 
 import { default as Payline } from "./payline";
-import {Card, CURRENCIES, Environment, Payment} from "./model";
+import { ACTIONS, Card, CURRENCIES, Environment, MODE, Payment } from "./model/model";
 
 const debug = _debug("payline-test");
 
@@ -22,15 +22,18 @@ const generateCard = (): Card => {
         number: "4242424242424242", // test valid card
         expirationDate: new Date(startDate.getTime() + 1000 * 60 * 60 * 24), // experied in 1 day
         cvx: "123",
-        type: "CB",
-    }
+        type: "CB"
+    };
 };
 
 const generatePayment = (): Payment => {
     return {
         amount: 9743,
+        currency: CURRENCIES.EUR,
+        action: ACTIONS.PAYMENT,
+        mode: MODE.CPT,
         softDescriptor: "payment test description"
-    }
+    };
 };
 
 let card: Card = generateCard();
@@ -45,7 +48,6 @@ afterEach(() => {
 });
 
 describe("WALLET manipulation", () => {
-
     it("create wallet", async () => {
         const raw = await payline.createWallet(walletId, card);
         debug(`Create wallet response ${JSON.stringify(raw.raw)}`);
@@ -54,11 +56,11 @@ describe("WALLET manipulation", () => {
     });
 
     it("update wallet", async () => {
-        const {wallet, ...rest} = await payline.createWallet(walletId, card);
+        const { wallet, ...rest } = await payline.createWallet(walletId, card);
         const updatedCard = Object.assign(card, {
             cvx: "124",
             expirationDate: new Date(startDate.getTime() + 1000 * 60 * 60 * 24 * 32), // experied in 1 month
-            cardholder: "John Doe-Junior",
+            cardholder: "John Doe-Junior"
         });
         const raw = await payline.updateWallet(wallet, updatedCard);
 
@@ -68,32 +70,34 @@ describe("WALLET manipulation", () => {
     });
 
     it("get wallet", async () => {
-        const {wallet, ...rest} = await payline.createWallet(walletId, card);
+        const { wallet, ...rest } = await payline.createWallet(walletId, card);
         const raw = await payline.getWallet(wallet);
         debug(`Get wallet response ${JSON.stringify(raw.raw)}`);
         expect(raw.wallet).toBe(walletId);
         expect(raw.raw.result && raw.raw.result.code).toBe("02500");
         expect(raw.raw.wallet && raw.raw.wallet.card && raw.raw.wallet.card.expirationDate).toHaveLength(4);
         expect(raw.raw.wallet && raw.raw.wallet.card && raw.raw.wallet.card.number).toHaveLength(16);
-        expect(raw.raw.wallet && raw.raw.wallet.card && raw.raw.wallet.card.number &&
-            raw.raw.wallet.card.number.substring(10)).toBe("XX4242");
+        expect(
+            raw.raw.wallet &&
+                raw.raw.wallet.card &&
+                raw.raw.wallet.card.number &&
+                raw.raw.wallet.card.number.substring(10)
+        ).toBe("XX4242");
     });
 
     it("disable wallet", async () => {
-        const {wallet, ...rest} = await payline.createWallet(walletId, card);
-        const raw = await payline.disableWallet(wallet);
+        const { wallet, ...rest } = await payline.createWallet(walletId, card);
+        const raw = await payline.disableWallet(wallet.walletId);
         debug(`Disable wallet response ${JSON.stringify(raw.raw)}`);
         expect(raw.success).toBe(true);
         expect(raw.raw.result && raw.raw.result.code).toBe("02500");
     });
-
 });
 
 describe("PAYMENT operations", () => {
-
     it("do wallet payment", async () => {
-        const {wallet, ...rest} = await payline.createWallet(walletId, card);
-        const raw = await payline.doWalletPayment(wallet, payment, "test_payment_name_");
+        const { wallet, ...rest } = await payline.createWallet(walletId, card);
+        const raw = await payline.doWalletPayment(wallet.walletId, payment, "test_payment_name_");
         debug(`Do wallet payment response ${JSON.stringify(raw.raw)}`);
         //expect(raw.success).toBe(true);
         expect(raw.raw.result && raw.raw.result.code).toBe("00000");
@@ -104,14 +108,21 @@ describe("PAYMENT operations", () => {
         const raw = await payline.doPayment(payment, card, "test_payment_name_");
         debug(`Do payment response ${JSON.stringify(raw.raw)}`);
         //expect(raw.success).toBe(true);
-        expect(raw.raw.authorization && raw.raw.authorization.raw && raw.raw.authorization.raw.result && raw.raw.authorization.raw.result.code).toBe("00000");
-        expect(raw.raw.capture && raw.raw.capture.raw && raw.raw.capture.raw.result && raw.raw.capture.raw.result.code).toBe("00000");
+        expect(
+            raw.raw.authorization &&
+                raw.raw.authorization.raw &&
+                raw.raw.authorization.raw.result &&
+                raw.raw.authorization.raw.result.code
+        ).toBe("00000");
+        expect(
+            raw.raw.capture && raw.raw.capture.raw && raw.raw.capture.raw.result && raw.raw.capture.raw.result.code
+        ).toBe("00000");
         expect(raw.id).not.toBeUndefined();
     });
 
     it("do reset payment", async () => {
-        const {wallet, ...rest} = await payline.createWallet(walletId, card);
-        const {id, ...rest2} = await payline.doWalletPayment(wallet, payment, "test_payment_name_");
+        const { wallet, ...rest } = await payline.createWallet(walletId, card);
+        const { id, ...rest2 } = await payline.doWalletPayment(wallet.walletId, payment, "test_payment_name_");
         const raw = await payline.doReset(id);
 
         debug(`Do reset payment response ${JSON.stringify(raw.raw)}`);
@@ -121,20 +132,23 @@ describe("PAYMENT operations", () => {
     });
 
     it("schedule wallet payment", async () => {
-        const {wallet, ...rest} = await payline.createWallet(walletId, card);
+        const { wallet, ...rest } = await payline.createWallet(walletId, card);
         const scheduleDate = new Date(startDate.getTime() + 1000 * 5); // in 5s
-        const raw = await payline.scheduleWalletPayment(wallet, payment, scheduleDate, "test_schedule_payment_name_");
+        const raw = await payline.scheduleWalletPayment(
+            wallet.walletId,
+            payment,
+            scheduleDate,
+            "test_schedule_payment_name_"
+        );
 
         debug(`Schedule wallet payment response ${JSON.stringify(raw.raw)}`);
         //expect(raw.success).toBe(true);
         expect(raw.raw.result && raw.raw.result.code).toBe("02500");
         expect(raw.id).not.toBeUndefined();
     });
-
 });
 
 describe("AUTHORIZATION operations", () => {
-
     it("do authorization", async () => {
         const raw = await payline.doAuthorization(payment, card, "test_authorization_name_");
 
@@ -145,7 +159,7 @@ describe("AUTHORIZATION operations", () => {
     });
 
     it("do re authorization", async () => {
-        const {id, ...rest} = await payline.doAuthorization(payment, card, "test_authorization_name_");
+        const { id, ...rest } = await payline.doAuthorization(payment, card, "test_authorization_name_");
         const raw = await payline.doReAuthorization(id, payment, "test_re-authorization_name_");
 
         debug(`Do re authorization response ${JSON.stringify(raw.raw)}`);
@@ -155,7 +169,7 @@ describe("AUTHORIZATION operations", () => {
     });
 
     it("do capture", async () => {
-        const {id, ...rest} = await payline.doAuthorization(payment, card, "test_authorization_name_");
+        const { id, ...rest } = await payline.doAuthorization(payment, card, "test_authorization_name_");
         await payline.doReAuthorization(id, payment, "test_re-authorization_name_");
         const raw = await payline.doCapture(id, payment);
 
@@ -166,7 +180,7 @@ describe("AUTHORIZATION operations", () => {
     });
 
     it("do reset", async () => {
-        const {id, ...rest} = await payline.doAuthorization(payment, card, "test_authorization_name_");
+        const { id, ...rest } = await payline.doAuthorization(payment, card, "test_authorization_name_");
         await payline.doReAuthorization(id, payment, "test_re-authorization_name_");
         const raw = await payline.doReset(id);
 
@@ -175,13 +189,11 @@ describe("AUTHORIZATION operations", () => {
         expect(raw.raw.result && raw.raw.result.code).toBe("00000");
         expect(raw.id).not.toBeUndefined();
     });
-
 });
 
 describe("ADDITIONAL operations", () => {
-
     it("transaction details", async () => {
-        const {id, ...rest} = await payline.doAuthorization(payment, card, "test_transaction_details_name_");
+        const { id, ...rest } = await payline.doAuthorization(payment, card, "test_transaction_details_name_");
         const raw = await payline.transactionDetail(id);
 
         debug(`transaction details response ${JSON.stringify(raw.raw)}`);
@@ -191,7 +203,7 @@ describe("ADDITIONAL operations", () => {
     });
 
     it("do refund", async () => {
-        const {id, ...rest} = await payline.doAuthorization(payment, card, "test_refund_name_");
+        const { id, ...rest } = await payline.doAuthorization(payment, card, "test_refund_name_");
         await payline.doCapture(id, payment);
         const raw = await payline.doRefund(id, payment, "test_refund_name_");
 
@@ -202,17 +214,24 @@ describe("ADDITIONAL operations", () => {
     });
 
     it("do web payment", async () => {
-        const {id, ...rest} = await payline.doAuthorization(payment, card, "test_refund_name_");
+        const { id, ...rest } = await payline.doAuthorization(payment, card, "test_refund_name_");
         await payline.doCapture(id, payment);
-        const raw = await payline.doWebPayment(payment, "https://example.com/success",
-            "https://example.com/cancel", {}, null, "test_web_payment_name_");
+        const raw = await payline.doWebPayment(
+            29, //process.env.PAYLINE_VERSION,
+            payment,
+            {},
+            "https://example.com/success",
+            "https://example.com/cancel",
+            {}
+            // null,
+            // "test_web_payment_name_"
+        );
 
         debug(`Do web payment response ${JSON.stringify(raw.raw)}`);
         //expect(raw.success).toBe(true);
         expect(raw.raw.result && raw.raw.result.code).toBe("00000");
         expect(raw.url).not.toBeUndefined();
     });
-
 
     it("validate card", async () => {
         const raw: any = await payline.validateCard(payment, card, "test_card_validation_name_");
@@ -224,5 +243,4 @@ describe("ADDITIONAL operations", () => {
         expect(raw.raw.authorization.id).not.toBeUndefined();
         expect(raw.raw.reset.id).not.toBeUndefined();
     });
-
 });

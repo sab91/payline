@@ -7,27 +7,29 @@ import {
     Environment,
     EnvironmentsProperty,
     Operation,
-    OperationsProperty,
-} from "./model";
-
+    OperationsProperty
+} from "./model/model";
 
 const debug = _debug("payline-debug-core");
 
 export class PaylineCore {
-
     public paylineVersion: string = "18";
 
     private _soapClient: OperationsProperty<any | null> = {
         directPayment: null,
         webPayment: null,
-        extended: null,
+        extended: null
     };
 
-    constructor(private merchantId: string, private accessKey: string, public contractNumber: string,
-                public enviromnent: Environment,
-                public endpointsPrefix: EnvironmentsProperty<string> = DEFAULT_ENDPOINTS_PREFIX,
-                public wsdlsPrefix: EnvironmentsProperty<string> = DEFAULT_WSDLS_PREFIX,
-                public wsdlsName: OperationsProperty<string> = DEFAULT_WSDLS_NAME,) {
+    constructor(
+        private merchantId: string,
+        private accessKey: string,
+        public contractNumber: string,
+        public enviromnent: Environment,
+        public endpointsPrefix: EnvironmentsProperty<string> = DEFAULT_ENDPOINTS_PREFIX,
+        public wsdlsPrefix: EnvironmentsProperty<string> = DEFAULT_WSDLS_PREFIX,
+        public wsdlsName: OperationsProperty<string> = DEFAULT_WSDLS_NAME
+    ) {
         debug("Created Payline object");
     }
 
@@ -40,14 +42,16 @@ export class PaylineCore {
     public async runAction(action: string, args: any): Promise<any> {
         await this.initializeAll();
         const client = Object.keys(this._soapClient)
-            .map(clientName => this._soapClient[clientName])
-            .find(client => !!client && !!client[this.actionMethodName(action)]);
+            .map((clientName) => this._soapClient[clientName])
+            .find((client) => !!client && !!client[this.actionMethodName(action)]);
         if (!client) {
             throw new Error("Wrong action for the API");
         } else {
-            debug(`Using client with services ` +
-                `${JSON.stringify(Object.keys(client && client.wsdl && client.wsdl.services))} ` +
-                `for action ${action}}`);
+            debug(
+                `Using client with services ` +
+                    `${JSON.stringify(Object.keys(client && client.wsdl && client.wsdl.services))} ` +
+                    `for action ${action}}`
+            );
         }
 
         try {
@@ -55,9 +59,9 @@ export class PaylineCore {
         } catch (error) {
             const response = error.response;
             if (response.statusCode === 401) {
-                return Promise.reject({shortMessage: "Wrong API credentials", paylineError: error});
+                return Promise.reject({ shortMessage: "Wrong API credentials", paylineError: error });
             } else {
-                return Promise.reject({shortMessage: "Wrong API call", paylineError: error});
+                return Promise.reject({ shortMessage: "Wrong API call", paylineError: error });
             }
         }
     }
@@ -68,7 +72,7 @@ export class PaylineCore {
 
     protected soapParams(operation: Operation): { [key: string]: any } {
         return {
-            endpoint: `${this.endpointsPrefix[this.enviromnent]}${this.serviceNameFromWsdl(this.wsdlsName[operation])}`,
+            endpoint: `${this.endpointsPrefix[this.enviromnent]}${this.serviceNameFromWsdl(this.wsdlsName[operation])}`
         };
     }
 
@@ -77,8 +81,11 @@ export class PaylineCore {
     }
 
     private async initializeAll(): Promise<void> {
-        await Promise.all(Object.keys(this._soapClient).map((operation: Operation) =>
-            (!this._soapClient[operation]) ? this.initialize(operation) : Promise.resolve()));
+        await Promise.all(
+            Object.keys(this._soapClient).map((operation: Operation) =>
+                !this._soapClient[operation] ? this.initialize(operation) : Promise.resolve()
+            )
+        );
     }
 
     /**
@@ -108,7 +115,7 @@ export class PaylineCore {
     }
 
     private extractResult(result: any): any {
-        return result && result.result || result;
+        return (result && result.result) || result;
     }
 
     /**
@@ -121,37 +128,37 @@ export class PaylineCore {
         return {
             xsi_type: {
                 type,
-                xmlns: "http://obj.ws.payline.experian.com",
+                xmlns: "http://obj.ws.payline.experian.com"
             }
         };
     }
 
-    private paylineDate(date: Date): String {
+    private paylineDate(date: Date): string {
         const year = date.getFullYear().toString();
         const month = (date.getMonth() + 1).toString(); // getMonth() is zero-based
         const day = date.getDate().toString();
         const hour = date.getHours().toString();
         const minute = date.getMinutes().toString();
         // DD/MM/YYYY HH:mm
-        return `${(day[1] ? day : `0${day[0]}`)}/` +
-            `${(month[1] ? month : `0${month[0]}`)}/` +
-            `${year} ${(hour[1] ? hour : `0${hour[0]}`)}:${(minute[1] ? minute : `0${minute[0]}`)}`;
-    };
+        return (
+            `${day[1] ? day : `0${day[0]}`}/` +
+            `${month[1] ? month : `0${month[0]}`}/` +
+            `${year} ${hour[1] ? hour : `0${hour[0]}`}:${minute[1] ? minute : `0${minute[0]}`}`
+        );
+    }
 
-    private paylineShortDate(date: Date): String {
+    private paylineShortDate(date: Date): string {
         const year = date.getFullYear().toString();
         const month = (date.getMonth() + 1).toString(); // getMonth() is zero-based
         const day = date.getDate().toString();
         // DD/MM/YYYY
-        return `${(day[1] ? day : `0${day[0]}`)}/` +
-            `${(month[1] ? month : `0${month[0]}`)}/` +
-            `${year}`;
+        return `${day[1] ? day : `0${day[0]}`}/` + `${month[1] ? month : `0${month[0]}`}/` + `${year}`;
     }
 
     private ensureAttributes(args: any): any {
         Object.keys(args)
-            .filter(name => name !== "attributes" && !!args[name])
-            .forEach(name => {
+            .filter((name) => name !== "attributes" && !!args[name])
+            .forEach((name) => {
                 if (args[name].constructor === Object) {
                     // adding too much namesapces in the same node
                     //args[name].attributes = args[name].attributes || this.namespace(name);
@@ -160,15 +167,22 @@ export class PaylineCore {
                 if (args[name].constructor === Array) {
                     args[name].forEach(this.ensureAttributes.bind(this));
                 }
-                if (["expirationDate", "date", "issueCardDate"].includes(name) && !(args[name] instanceof Date) &&
-                    !isNaN(Date.parse(args[name]))) {
+                if (
+                    ["expirationDate", "date", "issueCardDate"].includes(name) &&
+                    !(args[name] instanceof Date) &&
+                    !isNaN(Date.parse(args[name]))
+                ) {
                     args[name] = new Date(args[name]);
                 }
                 if (name === "expirationDate" && args[name] instanceof Date) {
                     const year = args[name].getFullYear().toString();
                     const month = (args[name].getMonth() + 1).toString(); // getMonth() is zero-based
-                    debug("expiration date", args[name].getFullYear().toString(), (args[name].getMonth() + 1).toString())
-                    args[name] = `${(month[1] ? month : `0${month[0]}`)}${year.slice(-2)}`;
+                    debug(
+                        "expiration date",
+                        args[name].getFullYear().toString(),
+                        (args[name].getMonth() + 1).toString()
+                    );
+                    args[name] = `${month[1] ? month : `0${month[0]}`}${year.slice(-2)}`;
                 }
                 if (name === "expirationDate") {
                     args[name] = args[name].replace("/", ""); // replace 12/07 to 1207
@@ -180,7 +194,7 @@ export class PaylineCore {
                     args[name] = this.paylineDate(args[name]);
                 }
                 if (name === "amout" && args[name] instanceof Number) {
-
+                    return null;
                 }
             });
         return args;
