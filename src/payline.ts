@@ -20,7 +20,7 @@ import { DoWebPaymentRequest } from "./model/request";
 
 const info = _debug("payline-info-payline");
 
-export default class Payline extends PaylineCore {
+export class Payline extends PaylineCore {
     public defaultCurrency: CURRENCIES = CURRENCIES.USD;
     public defaultMode: MODE = MODE.CPT;
     public defaultReferencePrefix: string = "order_";
